@@ -7,15 +7,15 @@ input_table_u.fill(0)
 # input_line give the known values: the i-th list in it represents the i-th 3*3 block, in the sublist,
 # first number is the index (1-9: left to right, up to down), second number is the corresponding value.
 # test example
-input_line = [[5,7,6,4,7,3],
-              [4,2,5,8,9,7],
-              [2,2,5,6,6,1],
-              [1,1,5,4,9,5],
-              [1,5,9,6],
-              [1,7,5,9,9,3],
-              [4,5,5,2,8,6],
-              [1,8,5,3,6,4],
-              [3,2,4,9,5,8]]
+input_line = [[1,5,6,6,8,4,9,8],
+              [1,6,2,8,6,4,9,7],
+              [2,2,7,3],
+              [2,5,3,3,9,9],
+              [3,1,7,8],
+              [1,2,7,4,8,5],
+              [3,7,8,6],
+              [1,5,4,9,8,2,9,3],
+              [1,1,2,3,4,8,9,9]]
 # second expert test example (hard to resolve)
 # input_line = [[5,7,6,4,7,3],
 #               [4,2,5,8,9,7],
