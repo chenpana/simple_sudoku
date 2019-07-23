@@ -20,6 +20,4 @@ Requires Python 3
 
 ## 4. Todo
 
-- solve the time problem
-
 - make codes brief

@@ -5,7 +5,7 @@ import numpy as np
 from copy import deepcopy
 from itertools import product
 import time
-import multiprocessing
+import sys
 
 def new_set_table(value_table, set_table):
     set_table_next = deepcopy(set_table)
@@ -81,31 +81,72 @@ def terminate(value_table):
         return False
     return True
 
-def wrong(value_table):
+def wrong_value(value_table):
     for i in range(9):
-        if len(set(value_table[i])) != 9:
+        if not len(set(value_table[i])-{0}) == 0 \
+                and len(set(value_table[i])-{0}) != list((value_table[i] != 0).reshape((-1,))).count(True):
             return True
-        if len(set(value_table[:,i])) != 9:
+        if not len(set(value_table[:,i])-{0}) == 0 \
+                and len(set(value_table[:,i]) - {0}) != list((value_table[:,i] != 0).reshape((-1,))).count(True):
             return True
         bi = i
         r_range = range((bi // 3) * 3, (bi // 3) * 3 + 3)
         # c_range_start = (bi % 3) * 3
         c_range = range((bi % 3) * 3, (bi % 3) * 3 + 3)
         block_i = value_table[r_range[0]:r_range[0]+3, c_range[0]:c_range[0]+3].reshape((-1,))
-        if len(set(block_i)) != 9:
+        if not len(set(block_i) - {0}) == 0 \
+                and len(set(block_i) - {0}) != list((block_i != 0).reshape((-1,))).count(True):
             return True
     return False
 
-def check(start, element_list):
-    element_list_np = np.array(element_list)
-    try_value_table = element_list_np.reshape((9, 9))
-    if not wrong(try_value_table):
-        print(f"finish table:\n {try_value_table}")
-        end = time.time()
-        print(f"finish time:\n {end - start}")
-    del try_value_table
+def wrong_set(set_table):
+    if set() in np.unique(set_table):
+        return True
+    else:
+        return False
 
+def try_mode(set_table, value_table, start):
+    row, column = find_try_position(set_table, value_table)
+    try_set = set_table[row, column]
+    for value in try_set:
+        try_set_table = deepcopy(set_table)
+        try_value_table = deepcopy(value_table)
+        try_set_table[row, column] = {value}
+        try_value_table[row, column] = value
+        while True:
+            if not terminate(try_value_table):
+                try_set_table_next = new_set_table(try_value_table, try_set_table)
+                if wrong_set(try_set_table_next):
+                    break
 
+                #update value_table
+                try_value_table_next = new_value_table(try_set_table_next)
+                if wrong_value(try_value_table_next):
+                    break
+
+                if np.all(try_value_table == try_value_table_next):
+                    try_mode(try_set_table_next, try_value_table_next, start)
+                    break
+
+                try_set_table = try_set_table_next
+                try_value_table = try_value_table_next
+                del try_set_table_next
+                del try_value_table_next
+            else:
+                print(f"finish table:\n {try_value_table}")
+                if not wrong_value(try_value_table):
+                    print("check result: True")
+                end_last = time.time()
+                print(f"last finish time: {end_last - start}")
+                sys.exit(0)
+
+def find_try_position(set_table, value_table):
+    rows_columns = np.where(value_table==0)
+    set_table_multi = set_table[rows_columns]
+    len_list = [len(set_) for set_ in set_table_multi]
+    min_index = len_list.index(min(len_list))
+    row, column = rows_columns[0][min_index], rows_columns[1][min_index]
+    return row, column
 
 if __name__ == "__main__":
     start = time.time()
@@ -122,20 +163,17 @@ if __name__ == "__main__":
                 set_table[i, j] = {i + 1 for i in range(9)}
             else:
                 set_table[i, j] = {value_table[i, j]}
-    # print(set_table)
 
     while True:
         if not terminate(value_table):
             # update set_table in simple way, i.e. not try one element in a multi-set
             set_table_next = new_set_table(value_table, set_table)
-            print(f"set_table_next:\n {set_table_next}")
 
             #update value_table
             value_table_next = new_value_table(set_table_next)
-            print(f"value_table_next:\n {value_table_next}")
-            # print(f"now value_table:\n {value_table}")
+
             if np.all(value_table == value_table_next):
-                print(f"terminate_bug_table:\n {value_table}")
+                try_mode(set_table_next, value_table_next, start)
                 break
 
             set_table = set_table_next
@@ -143,18 +181,15 @@ if __name__ == "__main__":
             del set_table_next
             del value_table_next
         else:
-            break
+            print(f"finish table:\n {value_table}")
+            if not wrong_value(value_table):
+                print("check result: True")
+            end_last = time.time()
+            print(f"last finish time: {end_last - start}")
+            sys.exit(0)
 
-    # now try all possible cases, if not wrong, terminate right
-    # pool = multiprocessing.Pool(processes=1)
-    for element_list in product(*list(set_table.reshape((-1,)))):
-        # pool.apply_async(check, (start, element_list))
-        check(start, element_list)
-    # pool.close()
-    # pool.join()
 
-    end_last = time.time()
-    print(f"last finish time:\n {end_last - start}")
+
 
 
 
